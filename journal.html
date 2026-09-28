@@ -286,22 +286,22 @@
             <div class="row">
                 <div>
                     <label>Entry Price</label>
-                    <input type="number" step="any" id="pEntry" placeholder="0.0000" required>
+                    <input type="number" step="any" id="pEntry" placeholder="0.0000">
                 </div>
                 <div>
                     <label>Stop Loss (SL)</label>
-                    <input type="number" step="any" id="pSL" placeholder="0.0000" required>
+                    <input type="number" step="any" id="pSL" placeholder="0.0000">
                 </div>
             </div>
 
             <div class="row">
                 <div>
                     <label>Take Profit (TP)</label>
-                    <input type="number" step="any" id="pTP" placeholder="0.0000" required>
+                    <input type="number" step="any" id="pTP" placeholder="0.0000">
                 </div>
                 <div>
                     <label>Lot Size</label>
-                    <input type="number" step="0.01" id="pLot" value="0.01" required>
+                    <input type="number" step="0.01" id="pLot" value="0.01">
                 </div>
             </div>
 
@@ -379,48 +379,25 @@
 </div>
 
 <script>
-  const scriptURL = "https://script.google.com/macros/s/AKfycbx3Rqvdq__da58BKcJ2aOJIqtnnjjgBPFcDywJ2leLU2lGHxGgA4zwb8snxyowx6cYu/exec";
+    const scriptURL = "https://script.google.com/macros/s/AKfycbx3Rqvdq__da58BKcJ2aOJIqtnnjjgBPFcDywJ2leLU2lGHxGgA4zwb8snxyowx6cYu/exec";
 
-document.getElementById('tradeForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-
-    document.getElementById('status').innerText = "Saving to Google Sheets...";
-    const metrics = typeof verifyStrategyMetrics === "function" ? verifyStrategyMetrics() : { fibPct: 0, estRisk: 0 };
-
-    // Use URLSearchParams for reliable parsing in Google Apps Script
-    const params = new URLSearchParams();
-    params.append('date', document.getElementById('tDate').value);
-    params.append('pair', document.getElementById('tPair').value);
-    params.append('direction', document.getElementById('tDirection').value);
-    params.append('trend4H', document.getElementById('tTrend4H').value);
-    params.append('poi15m', document.getElementById('tPoi15m').value);
-    params.append('fibPct', metrics.fibPct ? metrics.fibPct.toFixed(1) : 0);
-    params.append('estRisk', metrics.estRisk ? metrics.estRisk.toFixed(2) : 0);
-    params.append('outcome', document.getElementById('tOutcome').value);
-    params.append('pnl', parseFloat(document.getElementById('tPnL').value) || 0);
-    params.append('notes', document.getElementById('tNotes').value);
-
-    fetch(scriptURL, { 
-        method: 'POST', 
-        mode: 'no-cors',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: params.toString()
-    })
-    .then(() => {
-        document.getElementById('status').innerText = "✅ Saved to Google Sheets!";
-        setTimeout(() => { document.getElementById('status').innerText = "Ready..."; }, 2500);
-        this.reset();
+    // Set today's default date on page load
+    window.addEventListener('DOMContentLoaded', () => {
         if (document.getElementById('tDate')) {
             document.getElementById('tDate').valueAsDate = new Date();
         }
-    })
-    .catch(err => {
-        console.error("Submission Error:", err);
-        document.getElementById('status').innerText = "❌ Error saving trade";
+        fetchTradesFromSheet();
     });
-});
+
+    // Strategy Metrics Calculation Engine
+    function verifyStrategyMetrics() {
+        const high = parseFloat(document.getElementById('pHigh').value) || 0;
+        const low = parseFloat(document.getElementById('pLow').value) || 0;
+        const entry = parseFloat(document.getElementById('pEntry').value) || 0;
+        const sl = parseFloat(document.getElementById('pSL').value) || 0;
+        const lot = parseFloat(document.getElementById('pLot').value) || 0.01;
+        const direction = document.getElementById('tDirection').value;
+        const pair = document.getElementById('tPair').value;
 
         // Calculate Fib %
         let fibPct = 0;
@@ -484,52 +461,57 @@ document.getElementById('tradeForm').addEventListener('submit', function(e) {
         return { fibPct, estRisk };
     }
 
-   // Submit and Log Trade to Google Sheets
-document.getElementById('tradeForm').addEventListener('submit', function(e) {
-    e.preventDefault();
+    // Single Form Submit Handler
+    document.getElementById('tradeForm').addEventListener('submit', function(e) {
+        e.preventDefault();
 
-    document.getElementById('status').innerText = "Saving to Google Sheets...";
-    const metrics = verifyStrategyMetrics();
+        document.getElementById('status').innerText = "Saving to Google Sheets...";
+        const metrics = verifyStrategyMetrics();
 
-    const formData = new FormData();
-    formData.append('date', document.getElementById('tDate').value);
-    formData.append('pair', document.getElementById('tPair').value);
-    formData.append('direction', document.getElementById('tDirection').value);
-    formData.append('trend4H', document.getElementById('tTrend4H').value);
-    formData.append('poi15m', document.getElementById('tPoi15m').value);
-    formData.append('fibPct', metrics.fibPct.toFixed(1));
-    formData.append('estRisk', metrics.estRisk.toFixed(2));
-    formData.append('outcome', document.getElementById('tOutcome').value);
-    formData.append('pnl', parseFloat(document.getElementById('tPnL').value) || 0);
-    formData.append('notes', document.getElementById('tNotes').value);
+        const params = new URLSearchParams();
+        params.append('date', document.getElementById('tDate').value);
+        params.append('pair', document.getElementById('tPair').value);
+        params.append('direction', document.getElementById('tDirection').value);
+        params.append('trend4H', document.getElementById('tTrend4H').value);
+        params.append('poi15m', document.getElementById('tPoi15m').value);
+        params.append('fibPct', metrics.fibPct ? metrics.fibPct.toFixed(1) : 0);
+        params.append('estRisk', metrics.estRisk ? metrics.estRisk.toFixed(2) : 0);
+        params.append('outcome', document.getElementById('tOutcome').value);
+        params.append('pnl', parseFloat(document.getElementById('tPnL').value) || 0);
+        params.append('notes', document.getElementById('tNotes').value);
 
-    fetch(scriptURL, { 
-        method: 'POST', 
-        mode: 'no-cors', // Bypasses browser CORS restrictions for Google Apps Script
-        body: formData 
-    })
-    .then(() => {
-        document.getElementById('status').innerText = "✅ Saved to Google Sheets!";
-        setTimeout(() => { document.getElementById('status').innerText = "Ready..."; }, 2500);
-        this.reset();
-        document.getElementById('tDate').valueAsDate = new Date();
-        
-        // Wait 1.5s for Google Sheets database reflection before refreshing UI
-        setTimeout(fetchTradesFromSheet, 1500);
-    })
-    .catch(err => {
-        console.error(err);
-        document.getElementById('status').innerText = "❌ Error saving trade";
+        fetch(scriptURL, { 
+            method: 'POST', 
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: params.toString()
+        })
+        .then(() => {
+            document.getElementById('status').innerText = "✅ Saved to Google Sheets!";
+            setTimeout(() => { document.getElementById('status').innerText = "Ready..."; }, 2500);
+            this.reset();
+            document.getElementById('tDate').valueAsDate = new Date();
+            
+            setTimeout(fetchTradesFromSheet, 1500);
+        })
+        .catch(err => {
+            console.error("Submission Error:", err);
+            document.getElementById('status').innerText = "❌ Error saving trade";
+        });
     });
-});
+
     // Fetch Trades directly from Google Sheets
     function fetchTradesFromSheet() {
-        if (!scriptURL || scriptURL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') return;
+        if (!scriptURL) return;
 
         fetch(scriptURL)
             .then(res => res.json())
             .then(trades => {
-                renderDashboard(trades.reverse()); // Show newest first
+                if (Array.isArray(trades)) {
+                    renderDashboard(trades.reverse());
+                }
             })
             .catch(err => {
                 console.log("Error fetching sheet data:", err);
@@ -552,12 +534,12 @@ document.getElementById('tradeForm').addEventListener('submit', function(e) {
             totalPnL += pnlVal;
 
             const row = `<tr>
-                <td>${trade.date}</td>
-                <td><strong>${trade.pair}</strong></td>
-                <td style="color:${trade.direction === 'LONG' ? '#10b981' : '#ef4444'}">${trade.direction}</td>
-                <td>${trade.fibPct}%</td>
-                <td>$${trade.estRisk}</td>
-                <td class="${trade.outcome === 'WIN' ? 'win' : trade.outcome === 'LOSS' ? 'loss' : ''}">${trade.outcome}</td>
+                <td>${trade.date || ''}</td>
+                <td><strong>${trade.pair || ''}</strong></td>
+                <td style="color:${trade.direction === 'LONG' ? '#10b981' : '#ef4444'}">${trade.direction || ''}</td>
+                <td>${trade.fibPct || 0}%</td>
+                <td>$${trade.estRisk || 0}</td>
+                <td class="${trade.outcome === 'WIN' ? 'win' : trade.outcome === 'LOSS' ? 'loss' : ''}">${trade.outcome || ''}</td>
                 <td class="${pnlVal >= 0 ? 'win' : 'loss'}">$${pnlVal.toFixed(2)}</td>
             </tr>`;
             tbody.insertAdjacentHTML('beforeend', row);
@@ -570,8 +552,6 @@ document.getElementById('tradeForm').addEventListener('submit', function(e) {
         const winRate = totalClosed > 0 ? Math.round((wins / totalClosed) * 100) : 0;
         document.getElementById('stat-winrate').innerText = winRate + "%";
     }
-
-    window.onload = fetchTradesFromSheet;
 </script>
 </body>
 </html>
