@@ -380,7 +380,7 @@
 
 <script>
     // Paste your Google Apps Script Web App URL below
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbwHC_mquPpH0hPBdxmyAFECe4UbUmK89BAUp1ZnhMvxnk_xYPgXCG3SJ--6XwQMk7MM/exec';
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbweUuJj1Slb7tMll6Bdu54uYfql649Z5tBXmrVVeb7ihHSGNHyzlsvxwVXeFLclVuC4/exec';
 
     // Set default date to current date
     document.getElementById('tDate').valueAsDate = new Date();
@@ -457,38 +457,44 @@
         return { fibPct, estRisk };
     }
 
-    // Submit and Log Trade to Google Sheets
-    document.getElementById('tradeForm').addEventListener('submit', function(e) {
-        e.preventDefault();
+   // Submit and Log Trade to Google Sheets
+document.getElementById('tradeForm').addEventListener('submit', function(e) {
+    e.preventDefault();
 
-        document.getElementById('status').innerText = "Saving to Google Sheets...";
-        const metrics = verifyStrategyMetrics();
+    document.getElementById('status').innerText = "Saving to Google Sheets...";
+    const metrics = verifyStrategyMetrics();
 
-        const formData = new FormData();
-        formData.append('date', document.getElementById('tDate').value);
-        formData.append('pair', document.getElementById('tPair').value);
-        formData.append('direction', document.getElementById('tDirection').value);
-        formData.append('trend4H', document.getElementById('tTrend4H').value);
-        formData.append('poi15m', document.getElementById('tPoi15m').value);
-        formData.append('fibPct', metrics.fibPct.toFixed(1));
-        formData.append('estRisk', metrics.estRisk.toFixed(2));
-        formData.append('outcome', document.getElementById('tOutcome').value);
-        formData.append('pnl', parseFloat(document.getElementById('tPnL').value) || 0);
-        formData.append('notes', document.getElementById('tNotes').value);
+    const formData = new FormData();
+    formData.append('date', document.getElementById('tDate').value);
+    formData.append('pair', document.getElementById('tPair').value);
+    formData.append('direction', document.getElementById('tDirection').value);
+    formData.append('trend4H', document.getElementById('tTrend4H').value);
+    formData.append('poi15m', document.getElementById('tPoi15m').value);
+    formData.append('fibPct', metrics.fibPct.toFixed(1));
+    formData.append('estRisk', metrics.estRisk.toFixed(2));
+    formData.append('outcome', document.getElementById('tOutcome').value);
+    formData.append('pnl', parseFloat(document.getElementById('tPnL').value) || 0);
+    formData.append('notes', document.getElementById('tNotes').value);
 
-        fetch(scriptURL, { method: 'POST', body: formData })
-            .then(res => {
-                document.getElementById('status').innerText = "✅ Saved to Google Sheets!";
-                setTimeout(() => { document.getElementById('status').innerText = "Ready..."; }, 2500);
-                this.reset();
-                document.getElementById('tDate').valueAsDate = new Date();
-                fetchTradesFromSheet();
-            })
-            .catch(err => {
-                document.getElementById('status').innerText = "❌ Error saving trade";
-            });
+    fetch(scriptURL, { 
+        method: 'POST', 
+        mode: 'no-cors', // Bypasses browser CORS restrictions for Google Apps Script
+        body: formData 
+    })
+    .then(() => {
+        document.getElementById('status').innerText = "✅ Saved to Google Sheets!";
+        setTimeout(() => { document.getElementById('status').innerText = "Ready..."; }, 2500);
+        this.reset();
+        document.getElementById('tDate').valueAsDate = new Date();
+        
+        // Wait 1.5s for Google Sheets database reflection before refreshing UI
+        setTimeout(fetchTradesFromSheet, 1500);
+    })
+    .catch(err => {
+        console.error(err);
+        document.getElementById('status').innerText = "❌ Error saving trade";
     });
-
+});
     // Fetch Trades directly from Google Sheets
     function fetchTradesFromSheet() {
         if (!scriptURL || scriptURL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') return;
