@@ -49,16 +49,6 @@
             color: var(--text-main);
         }
 
-        .badge {
-            background: #1e3a8a;
-            color: #93c5fd;
-            font-size: 11px;
-            padding: 2px 8px;
-            border-radius: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
         label {
             display: block;
             margin-top: 12px;
@@ -389,8 +379,8 @@
 </div>
 
 <script>
-    // Local state for journal records
-    let journalEntries = JSON.parse(localStorage.getItem('smc_trades') || '[]');
+    // Paste your Google Apps Script Web App URL below
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbwHC_mquPpH0hPBdxmyAFECe4UbUmK89BAUp1ZnhMvxnk_xYPgXCG3SJ--6XwQMk7MM/exec';
 
     // Set default date to current date
     document.getElementById('tDate').valueAsDate = new Date();
@@ -413,7 +403,6 @@
             } else {
                 fibPct = ((entry - low) / (high - low)) * 100;
             }
-            // Invert to show depth of retracement into range
             fibPct = 100 - fibPct;
         }
 
@@ -436,7 +425,7 @@
         let estRisk = 0;
         if (entry > 0 && sl > 0) {
             const pipDiff = Math.abs(entry - sl);
-            let multiplier = 100000; // standard FX lot size
+            let multiplier = 100000;
 
             if (pair === 'XAUUSD') multiplier = 100;
             else if (pair === 'BTCUSD') multiplier = 1;
@@ -468,63 +457,66 @@
         return { fibPct, estRisk };
     }
 
-    // Submit and Log Trade
+    // Submit and Log Trade to Google Sheets
     document.getElementById('tradeForm').addEventListener('submit', function(e) {
         e.preventDefault();
 
+        document.getElementById('status').innerText = "Saving to Google Sheets...";
         const metrics = verifyStrategyMetrics();
 
-        const entry = {
-            id: Date.now(),
-            date: document.getElementById('tDate').value,
-            pair: document.getElementById('tPair').value,
-            direction: document.getElementById('tDirection').value,
-            trend4H: document.getElementById('tTrend4H').value,
-            poi15m: document.getElementById('tPoi15m').value,
-            choch: document.getElementById('chkChoch').checked,
-            fibPass: document.getElementById('chkFib').checked,
-            fvgEntry: document.getElementById('chkFvg').checked,
-            maxRiskPass: document.getElementById('chkMaxRisk').checked,
-            entryPrice: parseFloat(document.getElementById('pEntry').value) || 0,
-            slPrice: parseFloat(document.getElementById('pSL').value) || 0,
-            tpPrice: parseFloat(document.getElementById('pTP').value) || 0,
-            fibPct: metrics.fibPct.toFixed(1),
-            estRisk: metrics.estRisk.toFixed(2),
-            outcome: document.getElementById('tOutcome').value,
-            pnl: parseFloat(document.getElementById('tPnL').value) || 0,
-            notes: document.getElementById('tNotes').value
-        };
+        const formData = new FormData();
+        formData.append('date', document.getElementById('tDate').value);
+        formData.append('pair', document.getElementById('tPair').value);
+        formData.append('direction', document.getElementById('tDirection').value);
+        formData.append('trend4H', document.getElementById('tTrend4H').value);
+        formData.append('poi15m', document.getElementById('tPoi15m').value);
+        formData.append('fibPct', metrics.fibPct.toFixed(1));
+        formData.append('estRisk', metrics.estRisk.toFixed(2));
+        formData.append('outcome', document.getElementById('tOutcome').value);
+        formData.append('pnl', parseFloat(document.getElementById('tPnL').value) || 0);
+        formData.append('notes', document.getElementById('tNotes').value);
 
-        journalEntries.unshift(entry);
-        localStorage.setItem('smc_trades', JSON.stringify(journalEntries));
-
-        document.getElementById('status').innerText = "✅ Trade Recorded Successfully!";
-        setTimeout(() => { document.getElementById('status').innerText = "Ready..."; }, 2500);
-
-        this.reset();
-        document.getElementById('tDate').valueAsDate = new Date();
-        renderDashboard();
+        fetch(scriptURL, { method: 'POST', body: formData })
+            .then(res => {
+                document.getElementById('status').innerText = "✅ Saved to Google Sheets!";
+                setTimeout(() => { document.getElementById('status').innerText = "Ready..."; }, 2500);
+                this.reset();
+                document.getElementById('tDate').valueAsDate = new Date();
+                fetchTradesFromSheet();
+            })
+            .catch(err => {
+                document.getElementById('status').innerText = "❌ Error saving trade";
+            });
     });
 
-    // Render Stats and History Table
-    function renderDashboard() {
+    // Fetch Trades directly from Google Sheets
+    function fetchTradesFromSheet() {
+        if (!scriptURL || scriptURL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') return;
+
+        fetch(scriptURL)
+            .then(res => res.json())
+            .then(trades => {
+                renderDashboard(trades.reverse()); // Show newest first
+            })
+            .catch(err => {
+                console.log("Error fetching sheet data:", err);
+            });
+    }
+
+    // Render Analytics & History Table
+    function renderDashboard(journalEntries) {
         const tbody = document.getElementById('trade-history-body');
         tbody.innerHTML = "";
 
         let totalPnL = 0;
         let wins = 0;
         let totalClosed = 0;
-        let compliantTrades = 0;
 
         journalEntries.forEach(trade => {
+            const pnlVal = parseFloat(trade.pnl) || 0;
             if (trade.outcome === 'WIN') { wins++; totalClosed++; }
             if (trade.outcome === 'LOSS') { totalClosed++; }
-            totalPnL += trade.pnl;
-
-            // Check compliance (all 4 rules met)
-            if (trade.choch && trade.fibPass && trade.fvgEntry && trade.maxRiskPass) {
-                compliantTrades++;
-            }
+            totalPnL += pnlVal;
 
             const row = `<tr>
                 <td>${trade.date}</td>
@@ -533,25 +525,20 @@
                 <td>${trade.fibPct}%</td>
                 <td>$${trade.estRisk}</td>
                 <td class="${trade.outcome === 'WIN' ? 'win' : trade.outcome === 'LOSS' ? 'loss' : ''}">${trade.outcome}</td>
-                <td class="${trade.pnl >= 0 ? 'win' : 'loss'}">$${trade.pnl.toFixed(2)}</td>
+                <td class="${pnlVal >= 0 ? 'win' : 'loss'}">$${pnlVal.toFixed(2)}</td>
             </tr>`;
             tbody.insertAdjacentHTML('beforeend', row);
         });
 
-        // Summary Statistics
         const statPnL = document.getElementById('stat-pnl');
         statPnL.innerText = "$" + totalPnL.toFixed(2);
         statPnL.className = totalPnL >= 0 ? "win" : "loss";
 
         const winRate = totalClosed > 0 ? Math.round((wins / totalClosed) * 100) : 0;
         document.getElementById('stat-winrate').innerText = winRate + "%";
-
-        const compliancePct = journalEntries.length > 0 ? Math.round((compliantTrades / journalEntries.length) * 100) : 100;
-        document.getElementById('stat-compliance').innerText = compliancePct + "%";
     }
 
-    // Initialize on page load
-    window.onload = renderDashboard;
+    window.onload = fetchTradesFromSheet;
 </script>
 </body>
 </html>
