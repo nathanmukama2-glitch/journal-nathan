@@ -15,7 +15,6 @@
             --primary-hover: #2563eb;
             --success: #10b981;
             --danger: #ef4444;
-            --warning: #f59e0b;
         }
 
         body {
@@ -42,12 +41,7 @@
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
         }
 
-        h2, h3 {
-            text-align: center;
-            margin-top: 0;
-            margin-bottom: 15px;
-            color: var(--text-main);
-        }
+        h2, h3 { text-align: center; margin-top: 0; margin-bottom: 15px; }
 
         label {
             display: block;
@@ -57,7 +51,7 @@
             color: var(--text-muted);
         }
 
-        input, select, textarea, button {
+        input, select, button {
             width: 100%;
             padding: 10px 12px;
             margin-top: 5px;
@@ -69,44 +63,8 @@
             font-size: 14px;
         }
 
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-
-        .row {
-            display: flex;
-            gap: 10px;
-        }
-
-        .row > div {
-            flex: 1;
-        }
-
-        .checkbox-group {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin-top: 8px;
-            background: #0f172a;
-            padding: 10px;
-            border-radius: 6px;
-            border: 1px solid var(--border-color);
-        }
-
-        .checkbox-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 12px;
-            color: var(--text-main);
-        }
-
-        .checkbox-item input {
-            width: auto;
-            margin: 0;
-            cursor: pointer;
-        }
+        .row { display: flex; gap: 10px; }
+        .row > div { flex: 1; }
 
         button {
             background: var(--primary);
@@ -116,66 +74,9 @@
             margin-top: 18px;
             cursor: pointer;
             font-weight: 600;
-            transition: background 0.2s;
         }
 
-        button:hover {
-            background: var(--primary-hover);
-        }
-
-        .btn-calc {
-            background: #475569;
-            margin-top: 8px;
-            padding: 8px;
-            font-size: 12px;
-        }
-
-        .calc-box {
-            background: #0f172a;
-            border: 1px dashed var(--border-color);
-            border-radius: 6px;
-            padding: 10px;
-            margin-top: 10px;
-            font-size: 13px;
-        }
-
-        .calc-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
-        }
-
-        .calc-row:last-child {
-            margin-bottom: 0;
-        }
-
-        .val-pass { color: var(--success); font-weight: bold; }
-        .val-fail { color: var(--danger); font-weight: bold; }
-
-        .summary {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 10px;
-            text-align: center;
-        }
-
-        .summary-box {
-            background: #0f172a;
-            padding: 12px 8px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-        }
-
-        .summary-box span {
-            display: block;
-            font-size: 11px;
-            color: var(--text-muted);
-            margin-bottom: 4px;
-        }
-
-        .summary-box strong {
-            font-size: 16px;
-        }
+        button:hover { background: var(--primary-hover); }
 
         #status {
             margin-top: 8px;
@@ -183,6 +84,7 @@
             text-align: center;
             font-size: 13px;
             min-height: 20px;
+            color: var(--primary);
         }
 
         table {
@@ -198,11 +100,6 @@
             border-bottom: 1px solid var(--border-color);
         }
 
-        th {
-            color: var(--text-muted);
-            font-weight: 600;
-        }
-
         .win { color: var(--success); font-weight: bold; }
         .loss { color: var(--danger); font-weight: bold; }
     </style>
@@ -213,10 +110,9 @@
     <h2>SMC Trading Journal</h2>
     <div id="status">Ready...</div>
 
-    <!-- Trade Form -->
     <div class="card">
         <form id="tradeForm">
-            <h3>Log Strategy Entry</h3>
+            <h3>Log Entry</h3>
 
             <div class="row">
                 <div>
@@ -228,11 +124,8 @@
                     <select id="tPair" required>
                         <option value="EURUSD">EUR/USD</option>
                         <option value="GBPUSD">GBP/USD</option>
-                        <option value="XAUUSD">XAU/USD (Gold)</option>
+                        <option value="XAUUSD">XAU/USD</option>
                         <option value="BTCUSD">BTC/USD</option>
-                        <option value="USDJPY">USD/JPY</option>
-                        <option value="AUDUSD">AUD/USD</option>
-                        <option value="OTHER">Other</option>
                     </select>
                 </div>
             </div>
@@ -254,109 +147,48 @@
                 </div>
             </div>
 
-            <label>15m Point of Interest (POI)</label>
+            <label>15m POI</label>
             <select id="tPoi15m" required>
-                <option value="Order Block">Order Block (OB)</option>
-                <option value="Liquidity Sweep">Liquidity Sweep / EQH/EQL</option>
-                <option value="Fair Value Gap">15m FVG</option>
-                <option value="Support/Resistance">S/R Zone</option>
+                <option value="Order Block">Order Block</option>
+                <option value="Fair Value Gap">FVG</option>
+                <option value="Liquidity Sweep">Liquidity Sweep</option>
             </select>
 
-            <label>1m Entry Checklist</label>
-            <div class="checkbox-group">
-                <label class="checkbox-item"><input type="checkbox" id="chkChoch" checked> 1m ChoCh</label>
-                <label class="checkbox-item"><input type="checkbox" id="chkFib" checked> Fib &ge; 68%</label>
-                <label class="checkbox-item"><input type="checkbox" id="chkFvg" checked> 1m FVG Entry</label>
-                <label class="checkbox-item"><input type="checkbox" id="chkMaxRisk" checked> Risk &le; $6.00</label>
-            </div>
-
-            <!-- Price & Fib Verification Engine -->
-            <label>Execution & Price Verification</label>
             <div class="row">
                 <div>
-                    <label>Swing High (1m)</label>
-                    <input type="number" step="any" id="pHigh" placeholder="0.0000">
+                    <label>Fib %</label>
+                    <input type="number" id="tFib" placeholder="e.g. 70">
                 </div>
                 <div>
-                    <label>Swing Low (1m)</label>
-                    <input type="number" step="any" id="pLow" placeholder="0.0000">
+                    <label>Risk ($)</label>
+                    <input type="number" step="0.01" id="tRisk" placeholder="6.00">
                 </div>
             </div>
 
             <div class="row">
                 <div>
-                    <label>Entry Price</label>
-                    <input type="number" step="any" id="pEntry" placeholder="0.0000">
-                </div>
-                <div>
-                    <label>Stop Loss (SL)</label>
-                    <input type="number" step="any" id="pSL" placeholder="0.0000">
-                </div>
-            </div>
-
-            <div class="row">
-                <div>
-                    <label>Take Profit (TP)</label>
-                    <input type="number" step="any" id="pTP" placeholder="0.0000">
-                </div>
-                <div>
-                    <label>Lot Size</label>
-                    <input type="number" step="0.01" id="pLot" value="0.01">
-                </div>
-            </div>
-
-            <button type="button" class="btn-calc" onclick="verifyStrategyMetrics()">Verify Fib Retracement & Max Risk</button>
-
-            <div class="calc-box" id="calcResults">
-                <div class="calc-row"><span>Fib Retracement:</span> <span id="resFib">-- %</span></div>
-                <div class="calc-row"><span>Calculated Risk:</span> <span id="resRisk">$0.00</span></div>
-                <div class="calc-row"><span>Risk Check (&le; $6.00):</span> <span id="resRiskStatus">--</span></div>
-            </div>
-
-            <label>Outcome Status</label>
-            <div class="row">
-                <div>
+                    <label>Outcome</label>
                     <select id="tOutcome">
-                        <option value="WIN">WIN (TP Hit)</option>
-                        <option value="LOSS">LOSS (SL Hit)</option>
+                        <option value="WIN">WIN</option>
+                        <option value="LOSS">LOSS</option>
                         <option value="BE">Breakeven</option>
-                        <option value="OPEN">Open Trade</option>
                     </select>
                 </div>
                 <div>
-                    <input type="number" step="0.01" id="tPnL" placeholder="PnL ($ e.g. +18.00)">
+                    <label>PnL ($)</label>
+                    <input type="number" step="0.01" id="tPnL" placeholder="+18.00">
                 </div>
             </div>
 
-            <label>Notes & Confluences</label>
-            <input type="text" id="tNotes" placeholder="Reasoning, emotions, or market conditions...">
+            <label>Notes</label>
+            <input type="text" id="tNotes" placeholder="Trade entry notes...">
 
             <button type="submit">Save Trade Entry</button>
         </form>
     </div>
 
-    <!-- Analytics Dashboard -->
     <div class="card">
-        <h3>Performance Overview</h3>
-        <div class="summary">
-            <div class="summary-box">
-                <span>Total PnL</span>
-                <strong id="stat-pnl" class="win">$0.00</strong>
-            </div>
-            <div class="summary-box">
-                <span>Win Rate</span>
-                <strong id="stat-winrate">0%</strong>
-            </div>
-            <div class="summary-box">
-                <span>Rule Compliance</span>
-                <strong id="stat-compliance" class="win">100%</strong>
-            </div>
-        </div>
-    </div>
-
-    <!-- Trade History Table -->
-    <div class="card">
-        <h3>Recent Trade Entries</h3>
+        <h3>Recent Entries</h3>
         <div style="overflow-x: auto;">
             <table>
                 <thead>
@@ -364,194 +196,86 @@
                         <th>Date</th>
                         <th>Pair</th>
                         <th>Dir</th>
-                        <th>Fib %</th>
-                        <th>Risk ($)</th>
                         <th>Outcome</th>
                         <th>PnL ($)</th>
                     </tr>
                 </thead>
-                <tbody id="trade-history-body">
-                    <!-- Dynamic Rows Insertion -->
-                </tbody>
+                <tbody id="trade-history-body"></tbody>
             </table>
         </div>
     </div>
 </div>
 
 <script>
-    const scriptURL = "https://script.google.com/macros/s/AKfycbx3Rqvdq__da58BKcJ2aOJIqtnnjjgBPFcDywJ2leLU2lGHxGgA4zwb8snxyowx6cYu/exec";
+    const scriptURL = "https://script.google.com/macros/s/AKfycbylhmgcaIU55LZtL1PuYFXXUcRNjNj7kOwNqIEdIeW4bOEsg5QHMm_tCcmbibN1crkw/exec";
 
-    // Set today's default date on page load
-    window.addEventListener('DOMContentLoaded', () => {
-        if (document.getElementById('tDate')) {
-            document.getElementById('tDate').valueAsDate = new Date();
-        }
-        fetchTradesFromSheet();
-    });
+    document.getElementById('tDate').valueAsDate = new Date();
 
-    // Strategy Metrics Calculation Engine
-    function verifyStrategyMetrics() {
-        const high = parseFloat(document.getElementById('pHigh').value) || 0;
-        const low = parseFloat(document.getElementById('pLow').value) || 0;
-        const entry = parseFloat(document.getElementById('pEntry').value) || 0;
-        const sl = parseFloat(document.getElementById('pSL').value) || 0;
-        const lot = parseFloat(document.getElementById('pLot').value) || 0.01;
-        const direction = document.getElementById('tDirection').value;
-        const pair = document.getElementById('tPair').value;
-
-        // Calculate Fib %
-        let fibPct = 0;
-        if (high > 0 && low > 0 && entry > 0 && high > low) {
-            if (direction === 'LONG') {
-                fibPct = ((high - entry) / (high - low)) * 100;
-            } else {
-                fibPct = ((entry - low) / (high - low)) * 100;
-            }
-            fibPct = 100 - fibPct;
-        }
-
-        const resFib = document.getElementById('resFib');
-        if (fibPct > 0) {
-            resFib.innerText = fibPct.toFixed(1) + "%";
-            if (fibPct >= 68) {
-                resFib.className = "val-pass";
-                document.getElementById('chkFib').checked = true;
-            } else {
-                resFib.className = "val-fail";
-                document.getElementById('chkFib').checked = false;
-            }
-        } else {
-            resFib.innerText = "-- %";
-            resFib.className = "";
-        }
-
-        // Estimate Risk in USD
-        let estRisk = 0;
-        if (entry > 0 && sl > 0) {
-            const pipDiff = Math.abs(entry - sl);
-            let multiplier = 100000;
-
-            if (pair === 'XAUUSD') multiplier = 100;
-            else if (pair === 'BTCUSD') multiplier = 1;
-            else if (pair.includes('JPY')) multiplier = 1000;
-
-            estRisk = pipDiff * lot * multiplier;
-        }
-
-        const resRisk = document.getElementById('resRisk');
-        const resRiskStatus = document.getElementById('resRiskStatus');
-
-        resRisk.innerText = "$" + estRisk.toFixed(2);
-
-        if (estRisk > 0) {
-            if (estRisk <= 6.00) {
-                resRiskStatus.innerText = "PASSED (≤ $6.00)";
-                resRiskStatus.className = "val-pass";
-                document.getElementById('chkMaxRisk').checked = true;
-            } else {
-                resRiskStatus.innerText = "EXCEEDED (> $6.00)";
-                resRiskStatus.className = "val-fail";
-                document.getElementById('chkMaxRisk').checked = false;
-            }
-        } else {
-            resRiskStatus.innerText = "--";
-            resRiskStatus.className = "";
-        }
-
-        return { fibPct, estRisk };
-    }
-
-    // Single Form Submit Handler
+    // Save Trade Data to Google Sheet
     document.getElementById('tradeForm').addEventListener('submit', function(e) {
         e.preventDefault();
-
         document.getElementById('status').innerText = "Saving to Google Sheets...";
-        const metrics = verifyStrategyMetrics();
 
         const params = new URLSearchParams();
+        params.append('action', 'saveTrade');
         params.append('date', document.getElementById('tDate').value);
         params.append('pair', document.getElementById('tPair').value);
         params.append('direction', document.getElementById('tDirection').value);
         params.append('trend4H', document.getElementById('tTrend4H').value);
         params.append('poi15m', document.getElementById('tPoi15m').value);
-        params.append('fibPct', metrics.fibPct ? metrics.fibPct.toFixed(1) : 0);
-        params.append('estRisk', metrics.estRisk ? metrics.estRisk.toFixed(2) : 0);
+        params.append('fibPct', document.getElementById('tFib').value || 0);
+        params.append('estRisk', document.getElementById('tRisk').value || 0);
         params.append('outcome', document.getElementById('tOutcome').value);
-        params.append('pnl', parseFloat(document.getElementById('tPnL').value) || 0);
+        params.append('pnl', document.getElementById('tPnL').value || 0);
         params.append('notes', document.getElementById('tNotes').value);
 
         fetch(scriptURL, { 
             method: 'POST', 
             mode: 'no-cors',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: params.toString()
         })
         .then(() => {
             document.getElementById('status').innerText = "✅ Saved to Google Sheets!";
-            setTimeout(() => { document.getElementById('status').innerText = "Ready..."; }, 2500);
             this.reset();
             document.getElementById('tDate').valueAsDate = new Date();
-            
             setTimeout(fetchTradesFromSheet, 1500);
         })
         .catch(err => {
-            console.error("Submission Error:", err);
             document.getElementById('status').innerText = "❌ Error saving trade";
         });
     });
 
-    // Fetch Trades directly from Google Sheets
+    // Fetch Trades from Google Sheet
     function fetchTradesFromSheet() {
-        if (!scriptURL) return;
-
-        fetch(scriptURL)
+        fetch(scriptURL + "?action=getTrades")
             .then(res => res.json())
             .then(trades => {
                 if (Array.isArray(trades)) {
-                    renderDashboard(trades.reverse());
+                    renderTable(trades.reverse());
                 }
             })
-            .catch(err => {
-                console.log("Error fetching sheet data:", err);
-            });
+            .catch(err => console.log("Fetch error:", err));
     }
 
-    // Render Analytics & History Table
-    function renderDashboard(journalEntries) {
+    function renderTable(trades) {
         const tbody = document.getElementById('trade-history-body');
         tbody.innerHTML = "";
 
-        let totalPnL = 0;
-        let wins = 0;
-        let totalClosed = 0;
-
-        journalEntries.forEach(trade => {
+        trades.forEach(trade => {
             const pnlVal = parseFloat(trade.pnl) || 0;
-            if (trade.outcome === 'WIN') { wins++; totalClosed++; }
-            if (trade.outcome === 'LOSS') { totalClosed++; }
-            totalPnL += pnlVal;
-
             const row = `<tr>
                 <td>${trade.date || ''}</td>
                 <td><strong>${trade.pair || ''}</strong></td>
                 <td style="color:${trade.direction === 'LONG' ? '#10b981' : '#ef4444'}">${trade.direction || ''}</td>
-                <td>${trade.fibPct || 0}%</td>
-                <td>$${trade.estRisk || 0}</td>
                 <td class="${trade.outcome === 'WIN' ? 'win' : trade.outcome === 'LOSS' ? 'loss' : ''}">${trade.outcome || ''}</td>
                 <td class="${pnlVal >= 0 ? 'win' : 'loss'}">$${pnlVal.toFixed(2)}</td>
             </tr>`;
             tbody.insertAdjacentHTML('beforeend', row);
         });
-
-        const statPnL = document.getElementById('stat-pnl');
-        statPnL.innerText = "$" + totalPnL.toFixed(2);
-        statPnL.className = totalPnL >= 0 ? "win" : "loss";
-
-        const winRate = totalClosed > 0 ? Math.round((wins / totalClosed) * 100) : 0;
-        document.getElementById('stat-winrate').innerText = winRate + "%";
     }
+
+    window.onload = fetchTradesFromSheet;
 </script>
 </body>
 </html>
