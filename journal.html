@@ -379,21 +379,48 @@
 </div>
 
 <script>
-    // Paste your Google Apps Script Web App URL below
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbweUuJj1Slb7tMll6Bdu54uYfql649Z5tBXmrVVeb7ihHSGNHyzlsvxwVXeFLclVuC4/exec';
+  const scriptURL = "https://script.google.com/macros/s/AKfycbz0nxA60mo_ET5AVyfw7QVC88dZu7rzqX37yy_KyzPkotb7MpNcAUxfqJwOKKG5nvqg/exec";
 
-    // Set default date to current date
-    document.getElementById('tDate').valueAsDate = new Date();
+document.getElementById('tradeForm').addEventListener('submit', function(e) {
+    e.preventDefault();
 
-    // Verify 68% Fib level & $6.00 max risk limit
-    function verifyStrategyMetrics() {
-        const direction = document.getElementById('tDirection').value;
-        const high = parseFloat(document.getElementById('pHigh').value) || 0;
-        const low = parseFloat(document.getElementById('pLow').value) || 0;
-        const entry = parseFloat(document.getElementById('pEntry').value) || 0;
-        const sl = parseFloat(document.getElementById('pSL').value) || 0;
-        const lot = parseFloat(document.getElementById('pLot').value) || 0.01;
-        const pair = document.getElementById('tPair').value;
+    document.getElementById('status').innerText = "Saving to Google Sheets...";
+    const metrics = typeof verifyStrategyMetrics === "function" ? verifyStrategyMetrics() : { fibPct: 0, estRisk: 0 };
+
+    // Use URLSearchParams for reliable parsing in Google Apps Script
+    const params = new URLSearchParams();
+    params.append('date', document.getElementById('tDate').value);
+    params.append('pair', document.getElementById('tPair').value);
+    params.append('direction', document.getElementById('tDirection').value);
+    params.append('trend4H', document.getElementById('tTrend4H').value);
+    params.append('poi15m', document.getElementById('tPoi15m').value);
+    params.append('fibPct', metrics.fibPct ? metrics.fibPct.toFixed(1) : 0);
+    params.append('estRisk', metrics.estRisk ? metrics.estRisk.toFixed(2) : 0);
+    params.append('outcome', document.getElementById('tOutcome').value);
+    params.append('pnl', parseFloat(document.getElementById('tPnL').value) || 0);
+    params.append('notes', document.getElementById('tNotes').value);
+
+    fetch(scriptURL, { 
+        method: 'POST', 
+        mode: 'no-cors',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: params.toString()
+    })
+    .then(() => {
+        document.getElementById('status').innerText = "✅ Saved to Google Sheets!";
+        setTimeout(() => { document.getElementById('status').innerText = "Ready..."; }, 2500);
+        this.reset();
+        if (document.getElementById('tDate')) {
+            document.getElementById('tDate').valueAsDate = new Date();
+        }
+    })
+    .catch(err => {
+        console.error("Submission Error:", err);
+        document.getElementById('status').innerText = "❌ Error saving trade";
+    });
+});
 
         // Calculate Fib %
         let fibPct = 0;
