@@ -78,13 +78,25 @@
 
         button:hover { background: var(--primary-hover); }
 
+        .btn-clear {
+            background: transparent;
+            border: 1px solid var(--danger);
+            color: var(--danger);
+            margin-top: 10px;
+        }
+
+        .btn-clear:hover {
+            background: var(--danger);
+            color: white;
+        }
+
         #status {
             margin-top: 8px;
             font-weight: 600;
             text-align: center;
             font-size: 13px;
             min-height: 20px;
-            color: var(--primary);
+            color: var(--success);
         }
 
         table {
@@ -108,7 +120,7 @@
 
 <div class="container">
     <h2>SMC Trading Journal</h2>
-    <div id="status">Ready...</div>
+    <div id="status">Ready</div>
 
     <div class="card">
         <form id="tradeForm">
@@ -203,64 +215,60 @@
                 <tbody id="trade-history-body"></tbody>
             </table>
         </div>
+        <button type="button" class="btn-clear" onclick="clearJournal()">Clear All Data</button>
     </div>
 </div>
 
 <script>
-    const scriptURL = "https://script.google.com/macros/s/AKfycbylhmgcaIU55LZtL1PuYFXXUcRNjNj7kOwNqIEdIeW4bOEsg5QHMm_tCcmbibN1crkw/exec";
-
+    // Set default date to today
     document.getElementById('tDate').valueAsDate = new Date();
 
-    // Save Trade Data to Google Sheet
-    document.getElementById('tradeForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        document.getElementById('status').innerText = "Saving to Google Sheets...";
-
-        const params = new URLSearchParams();
-        params.append('action', 'saveTrade');
-        params.append('date', document.getElementById('tDate').value);
-        params.append('pair', document.getElementById('tPair').value);
-        params.append('direction', document.getElementById('tDirection').value);
-        params.append('trend4H', document.getElementById('tTrend4H').value);
-        params.append('poi15m', document.getElementById('tPoi15m').value);
-        params.append('fibPct', document.getElementById('tFib').value || 0);
-        params.append('estRisk', document.getElementById('tRisk').value || 0);
-        params.append('outcome', document.getElementById('tOutcome').value);
-        params.append('pnl', document.getElementById('tPnL').value || 0);
-        params.append('notes', document.getElementById('tNotes').value);
-
-        fetch(scriptURL, { 
-            method: 'POST', 
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: params.toString()
-        })
-        .then(() => {
-            document.getElementById('status').innerText = "✅ Saved to Google Sheets!";
-            this.reset();
-            document.getElementById('tDate').valueAsDate = new Date();
-            setTimeout(fetchTradesFromSheet, 1500);
-        })
-        .catch(err => {
-            document.getElementById('status').innerText = "❌ Error saving trade";
-        });
-    });
-
-    // Fetch Trades from Google Sheet
-    function fetchTradesFromSheet() {
-        fetch(scriptURL + "?action=getTrades")
-            .then(res => res.json())
-            .then(trades => {
-                if (Array.isArray(trades)) {
-                    renderTable(trades.reverse());
-                }
-            })
-            .catch(err => console.log("Fetch error:", err));
+    // Get trades from LocalStorage
+    function getStoredTrades() {
+        return JSON.parse(localStorage.getItem('smc_journal_trades') || '[]');
     }
 
-    function renderTable(trades) {
+    // Save Trade locally
+    document.getElementById('tradeForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const trade = {
+            date: document.getElementById('tDate').value,
+            pair: document.getElementById('tPair').value,
+            direction: document.getElementById('tDirection').value,
+            trend4H: document.getElementById('tTrend4H').value,
+            poi15m: document.getElementById('tPoi15m').value,
+            fibPct: document.getElementById('tFib').value || 0,
+            estRisk: document.getElementById('tRisk').value || 0,
+            outcome: document.getElementById('tOutcome').value,
+            pnl: parseFloat(document.getElementById('tPnL').value) || 0,
+            notes: document.getElementById('tNotes').value
+        };
+
+        const trades = getStoredTrades();
+        trades.push(trade);
+        localStorage.setItem('smc_journal_trades', JSON.stringify(trades));
+
+        document.getElementById('status').innerText = "✅ Trade Saved Locally!";
+        this.reset();
+        document.getElementById('tDate').valueAsDate = new Date();
+        renderTable();
+
+        setTimeout(() => {
+            document.getElementById('status').innerText = "Ready";
+        }, 2000);
+    });
+
+    // Render history table
+    function renderTable() {
+        const trades = getStoredTrades().reverse();
         const tbody = document.getElementById('trade-history-body');
         tbody.innerHTML = "";
+
+        if (trades.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#94a3b8;">No entries saved yet.</td></tr>`;
+            return;
+        }
 
         trades.forEach(trade => {
             const pnlVal = parseFloat(trade.pnl) || 0;
@@ -275,7 +283,16 @@
         });
     }
 
-    window.onload = fetchTradesFromSheet;
+    function clearJournal() {
+        if (confirm("Are you sure you want to clear all journal entries?")) {
+            localStorage.removeItem('smc_journal_trades');
+            renderTable();
+            document.getElementById('status').innerText = "Journal cleared.";
+        }
+    }
+
+    // Load table on startup
+    window.onload = renderTable;
 </script>
 </body>
 </html>
